@@ -14,11 +14,14 @@ class Transform extends Component
      */
     public function image($image, $sizes = [], $options = [])
     {
+        if(!isset($image->filename)){
+            return [];
+        }
         // Secure sign the cloudinary URL
         $options['sign_url'] = true;
         
         // No alt tag specified?
-        if (!isset($options['alt']))
+        if (!isset($options['alt']) && isset($image->title) )
             $options['alt'] = $image->title;
             
         // Scale and crop
@@ -27,7 +30,12 @@ class Transform extends Component
             unset($options['scaleAndCrop']);
         }
         
-        $urls = $this->generateUrls($image->filename, $sizes, $options);
+        // if image is within a Cloudinary folder, add the folder path
+        if (isset($image->folderPath)) {
+            $urls = $this->generateUrls(str_replace(" ","%20",$image->folderPath).$image->filename, $sizes, $options);
+        } else {
+            $urls = $this->generateUrls($image->filename, $sizes, $options);
+        }
         
         return [
             'alt' => $options['alt'],
